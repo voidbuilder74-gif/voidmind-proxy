@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: voidmind-proxy
+    runtime: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python proxy.py"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
