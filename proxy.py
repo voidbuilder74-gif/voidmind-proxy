@@ -24,9 +24,10 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 
 # --- Configuration ------------------------------------------------------
-# Local dev:  defaults to 127.0.0.1:8001
-# Render:     platform sets HOST=0.0.0.0 and PORT dynamically
-HOST = os.environ.get("HOST", "127.0.0.1")
+# Local dev (Termux):  no PORT env -> binds to 127.0.0.1:8001
+# Render / cloud:      PORT env set -> binds to 0.0.0.0:$PORT (required)
+_port_env_set = "PORT" in os.environ
+HOST = os.environ.get("HOST", "0.0.0.0" if _port_env_set else "127.0.0.1")
 PORT = int(os.environ.get("PORT", "8001"))
 
 _GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
