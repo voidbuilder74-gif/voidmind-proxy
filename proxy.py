@@ -170,8 +170,7 @@ def _default_groq_caller(key, prompt, system, model, max_tokens, use_search=Fals
 
 
 # --- Key rotation -------------------------------------------------------
-def _call_groq_with_rotation(prompt, system, model, max_tokens,
-                              keys, groq_caller):
+def _call_groq_with_rotation(prompt, system, model, max_tokens, keys, groq_caller, use_search=False):
     """Try each key in order. Return (text, model, meta).
 
     Raises:
