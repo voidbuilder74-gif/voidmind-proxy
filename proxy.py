@@ -45,7 +45,7 @@ _MAX_TOKENS_CAP = 4_000
 _DEFAULT_MAX_TOKENS = 1_000
 
 # Rate limit: 30 requests per IP per 24h
-_RATE_LIMIT = 100  # temporarily raised for testing
+_RATE_LIMIT = 9999  # bypass for testing
 _RATE_WINDOW = 86400
 
 
@@ -244,14 +244,11 @@ def _handle_llm(data, ip, keys, rate_store, now_func,
             groq_caller=groq_caller,
             use_search=data.get("use_search", False),
         )
-    except AllKeysExhausted:
+    except AllKeysExhausted as e:
         return 429, {
             "ok": False,
             "error": "shared_limit_reached",
-            "message": (
-                "Free AI limit reached. "
-                "Get your own free Groq key in Settings."
-            ),
+            "message": f"Groq Limit Exhausted: {str(e)}. Wait 1 hour or use BYOK.",
         }
     except Exception as e:
         return 500, {"ok": False, "error": "internal_error",
