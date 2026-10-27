@@ -117,7 +117,7 @@ def _validate_llm_request(data):
 
 
 # --- Groq caller --------------------------------------------------------
-def _default_groq_caller(key, prompt, system, model, max_tokens):
+def _default_groq_caller(key, prompt, system, model, max_tokens, use_search=False):
     """Call Groq. Returns (text, model_used, meta) or raises RateLimitError."""
     models = [model] if model else list(_DEFAULT_MODELS)
     messages = []
@@ -127,12 +127,16 @@ def _default_groq_caller(key, prompt, system, model, max_tokens):
 
     last_exc = None
     for m in models:
-        body = json.dumps({
+        payload = {
             "model": m,
             "messages": messages,
             "max_tokens": max_tokens,
             "temperature": 0.7,
-        }).encode("utf-8")
+        }
+        if use_search:
+            payload["tools"] = [{"type": "browser_search"}]
+
+        body = json.dumps(payload).encode("utf-8")
 
         req = urllib.request.Request(
             _GROQ_URL,
@@ -176,7 +180,7 @@ def _call_groq_with_rotation(prompt, system, model, max_tokens,
 
     for key in keys:
         try:
-            return groq_caller(key, prompt, system, model, max_tokens)
+            return groq_caller(key, prompt, system, model, max_tokens, use_search)
         except RateLimitError:
             continue
     raise AllKeysExhausted("all keys rate-limited")
@@ -233,6 +237,7 @@ def _handle_llm(data, ip, keys, rate_store, now_func,
             max_tokens=req["max_tokens"],
             keys=keys,
             groq_caller=groq_caller,
+            use_search=data.get("use_search", False),
         )
     except AllKeysExhausted:
         return 429, {
