@@ -119,7 +119,10 @@ def _validate_llm_request(data):
 # --- Groq caller --------------------------------------------------------
 def _default_groq_caller(key, prompt, system, model, max_tokens, use_search=False):
     """Call Groq. Returns (text, model_used, meta) or raises RateLimitError."""
-    models = [model] if model else list(_DEFAULT_MODELS)
+    if use_search:
+        models = ["llama-3.3-70b-versatile"]  # Force Llama 3.3 for search (supports tools)
+    else:
+        models = [model] if model else list(_DEFAULT_MODELS)
     messages = []
     if system:
         messages.append({"role": "system", "content": system})
