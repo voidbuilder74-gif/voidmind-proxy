@@ -45,7 +45,7 @@ _MAX_TOKENS_CAP = 4_000
 _DEFAULT_MAX_TOKENS = 1_000
 
 # Rate limit: 30 requests per IP per 24h
-_RATE_LIMIT = 30
+_RATE_LIMIT = 100  # temporarily raised for testing
 _RATE_WINDOW = 86400
 
 
@@ -304,6 +304,10 @@ class _ProxyHandler(BaseHTTPRequestHandler):
             return None
 
     def _client_ip(self):
+        # Read the real user IP from proxy headers (Render uses X-Forwarded-For)
+        xff = self.headers.get("X-Forwarded-For")
+        if xff:
+            return xff.split(",")[0].strip()
         return self.client_address[0] if self.client_address else "unknown"
 
     def do_GET(self):
