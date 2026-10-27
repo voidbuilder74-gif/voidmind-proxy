@@ -160,7 +160,10 @@ def _default_groq_caller(key, prompt, system, model, max_tokens, use_search=Fals
                 continue  # try next model
             if e.code == 429:
                 raise RateLimitError(f"{m}: rate limited")
-            raise
+            
+            # Read the error body from Groq
+            error_body = e.read().decode('utf-8')
+            raise RuntimeError(f"Groq Error {e.code}: {error_body}")
     if last_exc:
         raise RateLimitError("all models exhausted")
     raise RuntimeError("unreachable")
@@ -248,9 +251,9 @@ def _handle_llm(data, ip, keys, rate_store, now_func,
                 "Get your own free Groq key in Settings."
             ),
         }
-    except Exception:
+    except Exception as e:
         return 500, {"ok": False, "error": "internal_error",
-                     "message": "proxy error"}
+                     "message": str(e)}
 
     # 4. Success
     return 200, {
