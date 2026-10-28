@@ -120,8 +120,8 @@ def _validate_llm_request(data):
 def _default_groq_caller(key, prompt, system, model, max_tokens, use_search=False):
     """Call Groq. Returns (text, model_used, meta) or raises RateLimitError."""
     if use_search:
-        # Try the search model first, then fall back to regular models if rate-limited
-        models = ["groq/compound-mini"] + list(_DEFAULT_MODELS)
+        # Strictly use the search model. Do not fall back to dumb models!
+        models = ["groq/compound-mini"]
     else:
         models = [model] if model else list(_DEFAULT_MODELS)
     messages = []
