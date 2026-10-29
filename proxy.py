@@ -174,7 +174,7 @@ def _default_groq_caller(key, prompt, system, model, max_tokens, use_search=Fals
 
 
 # --- Key rotation -------------------------------------------------------
-def _call_groq_with_rotation(prompt, system, model, max_tokens, keys, groq_caller, use_search=False):
+def _call_groq_with_rotation(prompt, system, model, max_tokens, keys, groq_caller, use_search=False, history=None):
     """Try each key in order. Return (text, model, meta).
 
     Raises:
@@ -186,7 +186,7 @@ def _call_groq_with_rotation(prompt, system, model, max_tokens, keys, groq_calle
 
     for key in keys:
         try:
-            return groq_caller(key, prompt, system, model, max_tokens, use_search)
+            return groq_caller(key, prompt, system, model, max_tokens, use_search, history)
         except RateLimitError:
             continue
     raise AllKeysExhausted("all keys rate-limited")
@@ -244,6 +244,7 @@ def _handle_llm(data, ip, keys, rate_store, now_func,
             keys=keys,
             groq_caller=groq_caller,
             use_search=data.get("use_search", False),
+            history=data.get("history"),
         )
     except AllKeysExhausted as e:
         return 429, {
