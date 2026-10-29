@@ -214,29 +214,15 @@ def _check_rate_limit(ip, store, now_func, limit, window):
 
 
 # --- Handlers -----------------------------------------------------------
-def _handle_llm(data, ip, keys, rate_store, now_func,
-                rate_limit, rate_window, groq_caller):
-    """Handle /api/llm. Returns (status_code, response_dict)."""
-    # 1. Rate limit check
-    if not _check_rate_limit(ip, rate_store, now_func,
-                              rate_limit, rate_window):
-        return 429, {
-            "ok": False,
-            "error": "shared_limit_reached",
-            "message": (
-                "Free AI limit reached. "
-                "Get your own free Groq key in Settings."
-            ),
-        }
+def _handle_llm(data, ip, keys, rate_store, now_func, rate_limit, rate_window, groq_caller):
+    if not _check_rate_limit(ip, rate_store, now_func, rate_limit, rate_window):
+        return 429, {"ok": False, "error": "shared_limit_reached", "message": "Free AI limit reached. Get your own free Groq key in Settings."}
 
-    # 2. Validate request
     try:
         req = _validate_llm_request(data)
     except ValueError as e:
-        return 400, {"ok": False, "error": "invalid_request",
-                     "message": str(e)}
+        return 400, {"ok": False, "error": "invalid_request", "message": str(e)}
 
-    # 3. Call Groq with rotation
     try:
         text, model_used, meta = _call_groq_with_rotation(
             prompt=req["prompt"],
@@ -245,28 +231,15 @@ def _handle_llm(data, ip, keys, rate_store, now_func,
             max_tokens=req["max_tokens"],
             keys=keys,
             groq_caller=groq_caller,
-            history=req.get("history"),
             use_search=data.get("use_search", False),
             history=req.get("history"),
         )
-    except AllKeysExhausted as e:
-        return 429, {
-            "ok": False,
-            "error": "shared_limit_reached",
-            "message": f"Groq Limit Exhausted: {str(e)}. Wait 1 hour or use BYOK.",
-        }
+    except AllKeysExhausted:
+        return 429, {"ok": False, "error": "shared_limit_reached", "message": "Groq Limit Exhausted. Wait 1 hour or use BYOK."}
     except Exception as e:
-        return 500, {"ok": False, "error": "internal_error",
-                     "message": str(e)}
+        return 500, {"ok": False, "error": "internal_error", "message": str(e)}
 
-    # 4. Success
-    return 200, {
-        "ok": True,
-        "text": text,
-        "model": model_used,
-        "tokens": meta.get("total_tokens", 0),
-    }
-
+    return 200, {"ok": True, "text": text, "model": model_used, "tokens": meta.get("total_tokens", 0)}
 
 def _handle_health(keys):
     """Handle /health."""
