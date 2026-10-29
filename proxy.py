@@ -245,9 +245,9 @@ def _handle_llm(data, ip, keys, rate_store, now_func,
             max_tokens=req["max_tokens"],
             keys=keys,
             groq_caller=groq_caller,
-            history=data.get("history"),
+            history=req.get("history"),
             use_search=data.get("use_search", False),
-            history=data.get("history"),
+            history=req.get("history"),
         )
     except AllKeysExhausted as e:
         return 429, {
