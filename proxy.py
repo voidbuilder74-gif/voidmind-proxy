@@ -117,7 +117,7 @@ def _validate_llm_request(data):
 
 
 # --- Groq caller --------------------------------------------------------
-def _default_groq_caller(key, prompt, system, model, max_tokens, use_search=False):
+def _default_groq_caller(key, prompt, system, model, max_tokens, use_search=False, history=None):
     """Call Groq. Returns (text, model_used, meta) or raises RateLimitError."""
     if use_search:
         # Strictly use the search model. Do not fall back to dumb models!
@@ -127,6 +127,8 @@ def _default_groq_caller(key, prompt, system, model, max_tokens, use_search=Fals
     messages = []
     if system:
         messages.append({"role": "system", "content": system})
+    if history:
+        messages.extend(history)
     messages.append({"role": "user", "content": prompt})
 
     last_exc = None
