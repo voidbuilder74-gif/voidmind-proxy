@@ -113,6 +113,7 @@ def _validate_llm_request(data):
         "system": system,
         "model": model,
         "max_tokens": max_tokens,
+        "history": data.get("history"),
     }
 
 
